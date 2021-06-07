@@ -14,7 +14,7 @@ from app.forms import ResetPasswordRequestForm
 from app.email import send_password_reset_email
 from app.forms import ResetPasswordForm
 from flask import jsonify
-from app.translate import translate
+# from app.translate import translate
 
 
 
