@@ -101,7 +101,7 @@ def user(username):
     # ]
     posts = Post.query.filter_by(user_id=current_user.id)
     form = EmptyForm()
-    return render_template('user.html',user=user,posts=posts)    
+    return render_template('user.html',user=user,posts=posts,form=form)    
 
 @app.before_request
 def before_request():
