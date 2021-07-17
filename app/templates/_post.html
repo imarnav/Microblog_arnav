@@ -2,10 +2,27 @@
         <tr valign="top">
             <td><img src="{{ post.author.avatar(36) }}"></td>
             <td>
+                <div class="container">
                 <a href="{{ url_for('user', username=post.author.username) }}">
                     {{ post.author.username }}
                 </a>
                 says:<br>{{ post.body }}
+                <p> </p>
+                {% if current_user.is_like(post) %}
+                    <a href="{{ url_for('like',post_id=post.id,action='unlike') }}">Unlike</a>
+                    
+                {% else %}
+                    <a href="{{ url_for('like',post_id=post.id,action='like') }}">Like</a>
+                {% endif %}
+                    {{ post.like.count() }}  
+                    <a href="{{ url_for('add_comment',post_id=post.id) }}">Comment</a>
+                    {{ count }}
+                    <a href="{{ url_for('delete_post',post_id=post.id) }}">Delete</a>
+                    <a href="{{ url_for('update_post',post_id=post.id) }}">Update post</a>
+                </div>
+                <br>
+
+
             </td>
         </tr>
     </table>

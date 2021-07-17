@@ -1,10 +1,20 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Sign In</h1>
+<div class="container">
+    <br>
+    <div class="row">
+        <div class="col-sm"></div>
+    <div class="col-sm">
+    <div class="card" style="width: 40rem;">
+    <div class="card-body"> 
+    <br> 
+    <div class="card-header">
+    <h1 style="color:rgb(50,84,168);">Blog App</h1>
+    </div>
+    <br>
     <form action="" method="post" novalidate>
         {{ form.hidden_tag() }}
-        <p>New User? <a href="{{ url_for('register') }}">Click to Register!</a></p>
         <p>
             {{ form.username.label }}<br>
             {{ form.username(size=32) }}
@@ -20,10 +30,21 @@
             {% endfor %}
         </p>
         <p>
-            Forgot Your Password?
-            <a href="{{ url_for('reset_password_request')}}">Click to Reset It</a>
+            <a href="{{ url_for('reset_password_request')}}">Forgot Password?</a>
         </p>
         <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
         <p>{{ form.submit() }}</p>
     </form>
+</div>
+</div>
+<br>
+<div class="card" style="width:40rem;">
+    <div class="card-body">
+        <p>Don't have an account? <a href="{{ url_for('register') }}">Sign up Now!</a></p>
+    </div>
+</div>
+</div>
+<div class="col-sm"></div>
+</div>
+</div>
 {% endblock %}

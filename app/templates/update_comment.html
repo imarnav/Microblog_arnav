@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% if form %}
+	<form action="" method="post">
+		{{ form.hidden_tag() }}
+		<p>
+			{{ form.comment.label }}<br>
+			{{ form.comment(cols=32, rows=4)}}<br>
+			{% for error in form.comment.errors %}
+			<span style="color: red;">[{{ error }}]</span>
+			{% endfor %}
+		</p>
+		<p>{{ form.submit() }}</p>
+	</form>
+
+	{% endif %}
+
+
+{% endblock %}

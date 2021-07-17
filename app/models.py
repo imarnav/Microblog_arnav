@@ -42,6 +42,8 @@ class User(UserMixin, db.Model):
 		digest = md5(self.email.lower().encode('utf-8')).hexdigest()
 		return 'https://www.gravatar.com/avatar/{}?d=identicon&s={}'.format(digest, size)
 
+
+
 	def follow(self,user):
 		if not self.is_following(user):
 			self.followed.append(user)
@@ -78,16 +80,21 @@ class User(UserMixin, db.Model):
 		return User.query.get(id)
 
 	def is_like(self,post):
-		return Like.query.filter(user_id==self.id, post_id==post.id).count()>0
+		return Like.query.filter(Like.user_id==self.id, Like.post_id==post.id).count()>0
 
 	def like(self, post):
 		if not self.is_like(post):
-			like = Like(post_id=post.id,user_id=user.id)
+			like = Like(user_id=self.id,post_id=post.id)
 			db.session.add(like)
 
 	def unlike(self, post):
 		if self.is_like(post):
-			Like(post_id=post.id,user_id=user.id)
+			# Like(post_id=post.id,user_id=user.id)
+			Like.query.filter(Like.user_id==self.id,Like.post_id==post.id).delete()	
+
+	def comment(self,post_id,body):
+		comment = Comment(user_id=self.id,post_id=post_id,body=body)
+		db.session.add(comment)			
 			
 
 class Post(db.Model):
@@ -95,6 +102,7 @@ class Post(db.Model):
 	body = db.Column(db.String(140))
 	timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+	like = db.relationship('Like',backref='post',lazy='dynamic')
 
 	def __repr__(self):
 		return '<Post {}>'.format(self.body)
@@ -105,6 +113,13 @@ class Like(db.Model):
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 	post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
 
+
+class Comment(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	body = db.Column(db.String(140))
+	timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+	post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
 
 @login.user_loader
 def load_user(id):

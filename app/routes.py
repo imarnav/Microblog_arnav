@@ -1,19 +1,20 @@
 from app import app
 from flask import render_template
-from app.forms import LoginForm, RegistrationForm
+from app.forms import LoginForm, RegistrationForm, CommentForm
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User
+from app.models import User, followers, Comment
 from flask import request, flash, redirect, url_for
 from werkzeug.urls import url_parse
 from app import db
 from datetime import datetime
-from app.forms import EditProfileForm, EmptyForm
+from app.forms import EditProfileForm, EmptyForm, CommentUpdateForm, PostUpdateForm
 from app.forms import PostForm
 from app.models import Post
 from app.forms import ResetPasswordRequestForm
 from app.email import send_password_reset_email
 from app.forms import ResetPasswordForm
 from flask import jsonify
+from sqlalchemy import desc
 # from app.translate import translate
 
 
@@ -61,6 +62,7 @@ def login():
             flash('Invalid username or password')
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
+
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('index')
@@ -74,6 +76,7 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('index'))    
+
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -95,13 +98,16 @@ def register():
 @login_required
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
-    # posts = [
-    #     {'author':user,'body':'test post #1'},
-    #     {'author':user,'body':'test post #2'}
-    # ]
-    posts = Post.query.filter_by(user_id=current_user.id)
+    page = request.args.get('page', 1, type=int)
+    posts = user.posts.order_by(Post.timestamp.desc()).paginate(
+        page, app.config['POSTS_PER_PAGE'], False)
+    next_url = url_for('user', username=user.username, page=posts.next_num) \
+        if posts.has_next else None
+    prev_url = url_for('user', username=user.username, page=posts.prev_num) \
+        if posts.has_prev else None
     form = EmptyForm()
-    return render_template('user.html',user=user,posts=posts,form=form)    
+    return render_template('user.html', user=user, posts=posts.items,
+                           next_url=next_url, prev_url=prev_url, form=form)   
 
 @app.before_request
 def before_request():
@@ -230,3 +236,100 @@ def reset_password(token):
 def translate_text():
     return jsonify({'text': translate(request.form['text'],request.form['source_language'],request.form['dest_language'])})
                                
+
+@app.route('/like/<int:post_id>/<action>')
+@login_required
+def like(post_id,action):
+    post = Post.query.filter_by(id=post_id).first_or_404()
+    if action=='like':
+        current_user.like(post)
+        db.session.commit()
+    else:
+        current_user.unlike(post)    
+        db.session.commit()
+    return redirect(request.referrer)        
+
+
+@app.route('/test/<username>')
+@login_required
+def follower_detail(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    # a = followers.query.filter(followers.c.followed_id==user.id).all()
+    a = (user.followers.all())
+    return render_template('test.html',follower_list = a,user=user)
+
+@app.route('/test1/<username>')
+@login_required
+def following_detail(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    # b = user.followed.filter(followers.c.follower_id==user.id).all()
+    b = (user.followed.all())
+    return render_template('test1.html',followed_list = b,user=user)
+
+
+@app.route('/comment/<post_id>', methods=['GET','POST'])
+@login_required
+def add_comment(post_id):
+    form = CommentForm()
+    post = Post.query.filter_by(id=post_id).first_or_404()
+    comments = Comment.query.filter_by(post_id=post_id).order_by(Comment.timestamp.desc()).all()
+    count = Comment.query.filter_by(post_id=post_id).count()
+    # username = User.query.filter_by()
+    if form.validate_on_submit():
+        current_user.comment(post_id=post.id,body=form.comment.data)
+        # comment = Comment(body=form.comment.data, user_id=current_user.id, post_id=post_id)
+        db.session.commit()
+        return redirect(request.referrer)
+    return render_template('comment.html',form=form,title='Add Comment',comments=comments,count=count,current_user=current_user)    
+
+
+@app.route('/delete/<comment_id>')
+@login_required
+def delete(comment_id):
+    delete = Comment.query.filter_by(id=comment_id).first_or_404()
+    db.session.delete(delete)
+    db.session.commit()
+    return redirect(request.referrer)
+
+
+@app.route('/post/delete/<post_id>')
+@login_required
+def delete_post(post_id):
+    comments = Comment.query.filter_by(post_id=post_id).all()
+    for comment in comments:
+        db.session.delete(comment)
+    delete = Post.query.filter_by(id=post_id).first_or_404()
+    db.session.delete(delete)
+    db.session.commit()
+    return redirect(request.referrer)
+
+
+@app.route('/update/comment/<comment_id>', methods=['GET','POST'])
+@login_required
+def update_comment(comment_id):
+    comment = Comment.query.filter_by(id=comment_id).first_or_404()
+    form = CommentUpdateForm(comment=comment.body)
+    # form.comment.data = comment.body
+    if form.validate_on_submit():
+        comment.body = form.comment.data
+        db.session.commit()
+        flash("Comment is updated!!")
+        return redirect(url_for('index'))
+
+
+    return render_template('update_comment.html',form=form,title='Update Comment')    
+
+
+@app.route('/update/post/<post_id>',methods=['GET','POST'])
+@login_required
+def update_post(post_id):
+    post = Post.query.filter_by(id=post_id).first_or_404()
+    form = PostUpdateForm(post=post.body)
+    if form.validate_on_submit():
+        post.body = form.post.data
+        db.session.commit()
+        flash("Post is updated now!!")
+        return redirect(url_for('index'))
+
+    return render_template('update_post.html',form=form,title='Post updated')
+        
