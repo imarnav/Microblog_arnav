@@ -77,6 +77,9 @@
                 if (e.target.className === "btn btn-primary unlike"){
                     unlike(e);
                 }
+                else if(e.target.className==="btn btn-primary like"){
+                    like(e);
+                }
 
             })
 
@@ -84,12 +87,22 @@
                 let post_id = e.target.getAttribute('post_id');
                 fetch(`/unlike/post?post_id=${post_id}`).then(response=>(response)).then(result=>{
                     e.target.className = "btn btn-primary like";
-                    e.target.innerText = "like";
+                    e.target.innerText = "Like";
                     let initial_count = parseInt(e.target.parentElement.querySelector(".count").innerText);
                     e.target.parentElement.querySelector(".count").innerText = initial_count-1;
-
                 })
             }
+
+            function like(e){
+                let post_id = e.target.getAttribute('post_id');
+                fetch(`/like/post?post_id=${post_id}`).then(response=>(response)).then(result=>{
+                    e.target.className = "btn btn-primary unlike";
+                    e.target.innerText = "Unlike";
+                    let initial_count = parseInt(e.target.parentElement.querySelector(".count").innerText);
+                    e.target.parentElement.querySelector(".count").innerText = initial_count+1;
+                })
+            }
+
 
 
 
