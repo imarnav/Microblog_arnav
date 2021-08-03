@@ -75,6 +75,7 @@ def login():
 @app.route('/logout')
 def logout():
     logout_user()
+    flash('You have been successfully logged out')
     return redirect(url_for('index'))    
 
 
@@ -237,7 +238,7 @@ def translate_text():
     return jsonify({'text': translate(request.form['text'],request.form['source_language'],request.form['dest_language'])})
                                
 
-@app.route('/like/<int:post_id>/<action>')
+@app.route('/like/post')
 @login_required
 def like(post_id,action):
     post = Post.query.filter_by(id=post_id).first_or_404()
@@ -248,6 +249,15 @@ def like(post_id,action):
         current_user.unlike(post)    
         db.session.commit()
     return redirect(request.referrer)        
+
+@app.route('/unlike/post')
+@login_required
+def unlike():
+    post_id = request.args.get('post_id')
+    post = Post.query.filter_by(id=post_id).first_or_404()
+    current_user.unlike(post)    
+    db.session.commit()
+    return jsonify({'success':True}),200,{'ContentType':'application/json'}     
 
 
 @app.route('/test/<username>')

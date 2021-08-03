@@ -9,12 +9,13 @@
                 says:<br>{{ post.body }}
                 <p> </p>
                 {% if current_user.is_like(post) %}
-                    <a href="{{ url_for('like',post_id=post.id,action='unlike') }}">Unlike</a>
-                    
+                <button class="btn btn-primary unlike" post_id="{{post.id}}" >Unlike</button>                    
                 {% else %}
-                    <a href="{{ url_for('like',post_id=post.id,action='like') }}">Like</a>
+                <button class="btn btn-primary like" post_id="{{post.id}}" >Like</button>                    
                 {% endif %}
-                    {{ post.like.count() }}  
+                <span class="count">
+                    {{ post.like.count() }}
+                </span>      
                     <a href="{{ url_for('add_comment',post_id=post.id) }}">Comment</a>
                     {{ count }}
                     <a href="{{ url_for('delete_post',post_id=post.id) }}">Delete</a>

@@ -66,7 +66,34 @@
         {% endwith %}
         <div class="container-fluid">
             {% block content %}{% endblock %}
-        </div>
+        </div>        
+         <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+        <script src = "https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script type="text/javascript">
+            document.addEventListener('click',function(e){
+                if (e.target.className === "btn btn-primary unlike"){
+                    unlike(e);
+                }
+
+            })
+
+            function unlike(e){
+                let post_id = e.target.getAttribute('post_id');
+                fetch(`/unlike/post?post_id=${post_id}`).then(response=>(response)).then(result=>{
+                    e.target.className = "btn btn-primary like";
+                    e.target.innerText = "like";
+                    let initial_count = parseInt(e.target.parentElement.querySelector(".count").innerText);
+                    e.target.parentElement.querySelector(".count").innerText = initial_count-1;
+
+                })
+            }
+
+
+
+    </script>
         
     </body>
 </html>
